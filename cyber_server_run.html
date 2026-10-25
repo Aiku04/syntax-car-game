@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber Server Run - Syntax RP Edition</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700&display=swap');
+
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #050814;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(10, 16, 38, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 191, 255, 0.25);
+            box-shadow: 0 0 30px rgba(0, 150, 255, 0.15);
+        }
+
+        .cyber-button {
+            background: linear-gradient(135deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%);
+            box-shadow: 0 0 15px rgba(67, 100, 247, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(111, 177, 252, 0.8);
+        }
+
+        .cyber-button:active {
+            transform: translateY(1px);
+        }
+
+        .cyber-button-danger {
+            background: linear-gradient(135deg, #e52d27 0%, #b31217 100%);
+            box-shadow: 0 0 15px rgba(229, 45, 39, 0.5);
+        }
+
+        /* Custom Scrollbar for Leaderboard */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(5, 8, 20, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4364F7;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col items-center justify-center relative bg-slate-950">
+
+    <!-- GAME CANVAS CONTAINER -->
+    <div class="relative w-full max-w-lg h-full max-h-[900px] bg-black shadow-2xl overflow-hidden md:rounded-2xl border border-cyan-900/40">
+        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+
+        <!-- IN-GAME HUD -->
+        <div id="hud" class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center pointer-events-none hidden font-orbitron">
+            <div class="flex flex-col">
+                <span class="text-xs text-cyan-400 font-semibold tracking-wider">SCORE</span>
+                <span id="hudScore" class="text-2xl font-black text-white drop-shadow-[0_0_8px_rgba(0,191,255,0.8)]">0</span>
+            </div>
+            
+            <div class="flex items-center gap-2 bg-slate-900/80 border border-blue-500/30 px-3 py-1.5 rounded-full backdrop-blur">
+                <div class="w-5 h-5 flex items-center justify-center">
+                    <!-- Mini Syntax RP Hex logo -->
+                    <svg viewBox="0 0 100 100" class="w-full h-full text-cyan-400 fill-current">
+                        <polygon points="50,5 90,27.5 90,72.5 50,95 10,72.5 10,27.5" fill="none" stroke="currentColor" stroke-width="8"/>
+                        <path d="M 65 35 L 35 45 L 65 55 L 35 65" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <span id="hudCoins" class="text-xl font-bold text-cyan-300">0</span>
+            </div>
+
+            <div class="flex flex-col items-end">
+                <span class="text-xs text-cyan-400 font-semibold tracking-wider">SPEED</span>
+                <span id="hudSpeed" class="text-lg font-bold text-blue-400">120 KM/H</span>
+            </div>
+        </div>
+
+        <!-- MAIN MENU OVERLAY -->
+        <div id="mainMenu" class="absolute inset-0 flex flex-col items-center justify-between p-6 z-20 glass-panel">
+            <div class="flex flex-col items-center mt-6 text-center">
+                <!-- Syntax RP Big Logo Icon -->
+                <div class="w-24 h-24 mb-3 relative animate-pulse">
+                    <svg viewBox="0 0 100 100" class="w-full h-full text-blue-500 drop-shadow-[0_0_20px_rgba(0,150,255,0.8)]">
+                        <polygon points="50,5 92,27.5 92,72.5 50,95 8,72.5 8,27.5" fill="none" stroke="currentColor" stroke-width="8"/>
+                        <path d="M 70 32 L 35 45 L 65 55 L 30 68" stroke="currentColor" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-black font-orbitron tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">
+                    SYNTAX RP
+                </h1>
+                <p class="text-xs text-cyan-300/70 font-orbitron tracking-widest uppercase mt-1">Cyber Server Run</p>
+            </div>
+
+            <div class="w-full max-w-xs flex flex-col gap-4 my-auto">
+                <div>
+                    <label class="block text-xs text-cyan-400 font-orbitron mb-1 tracking-wider">ENTER CALLSIGN / NAME</label>
+                    <input type="text" id="usernameInput" maxlength="12" placeholder="CyberRider" value="Player1"
+                           class="w-full bg-slate-900/90 border border-blue-500/50 rounded-lg px-4 py-2.5 text-center text-white font-bold font-orbitron focus:outline-none focus:border-cyan-400 shadow-inner">
+                </div>
+
+                <button id="startBtn" class="cyber-button w-full py-3.5 rounded-xl font-orbitron font-black text-lg text-white tracking-wider flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i> START RACE
+                </button>
+
+                <button id="menuLeaderboardBtn" class="bg-slate-800/80 hover:bg-slate-700/80 border border-blue-500/40 w-full py-3 rounded-xl font-orbitron font-bold text-sm text-cyan-300 tracking-wider flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-trophy text-yellow-400"></i> LEADERBOARD
+                </button>
+            </div>
+
+            <div class="text-center text-xs text-cyan-400/60 font-orbitron pb-2">
+                Use Arrow Keys / WASD or On-Screen Controls
+            </div>
+        </div>
+
+        <!-- GAME OVER OVERLAY -->
+        <div id="gameOverMenu" class="absolute inset-0 flex flex-col items-center justify-center p-6 z-20 glass-panel hidden">
+            <div class="text-center mb-6 animate-bounce">
+                <i class="fa-solid fa-triangle-exclamation text-5xl text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]"></i>
+                <h2 class="text-3xl font-black font-orbitron text-red-500 mt-2 tracking-wider">SYSTEM CRASH</h2>
+                <p class="text-xs text-slate-300 font-orbitron">VEHICLE DESTROYED BY BLOCKADE</p>
+            </div>
+
+            <div class="w-full max-w-xs bg-slate-900/80 border border-red-500/30 rounded-xl p-4 mb-6 flex flex-col gap-2 font-orbitron">
+                <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">FINAL DISTANCE</span>
+                    <span id="finalScore" class="text-xl font-bold text-cyan-400">0 m</span>
+                </div>
+                <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+                    <span class="text-slate-400">SYNTAX TOKENS</span>
+                    <span id="finalCoins" class="text-xl font-bold text-yellow-400">0</span>
+                </div>
+                <div class="flex justify-between items-center text-sm pt-1">
+                    <span class="text-slate-400">TOTAL SCORE</span>
+                    <span id="totalScore" class="text-2xl font-black text-blue-400">0</span>
+                </div>
+            </div>
+
+            <div class="w-full max-w-xs flex flex-col gap-3">
+                <button id="restartBtn" class="cyber-button w-full py-3.5 rounded-xl font-orbitron font-black text-lg text-white tracking-wider flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> PLAY AGAIN
+                </button>
+                <button id="goLeaderboardBtn" class="bg-slate-800/90 border border-blue-500/40 hover:bg-slate-700 w-full py-3 rounded-xl font-orbitron font-bold text-sm text-cyan-300 tracking-wider flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trophy text-yellow-400"></i> LEADERBOARD
+                </button>
+            </div>
+        </div>
+
+        <!-- GLOBAL LEADERBOARD MODAL OVERLAY -->
+        <div id="leaderboardModal" class="absolute inset-0 flex flex-col p-6 z-30 glass-panel hidden">
+            <div class="flex justify-between items-center mb-4 border-b border-blue-500/30 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-yellow-400 text-xl"></i>
+                    <h2 class="text-xl font-black font-orbitron text-cyan-300 tracking-wider">GLOBAL HALL OF FAME</h2>
+                </div>
+                <!-- Back Button -->
+                <button id="backFromLeaderboardBtn" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-600 font-orbitron text-xs flex items-center gap-1 transition">
+                    <i class="fa-solid fa-arrow-left"></i> BACK
+                </button>
+            </div>
+
+            <!-- Leaderboard List -->
+            <div class="flex-1 overflow-y-auto pr-1">
+                <div id="leaderboardList" class="flex flex-col gap-2 font-orbitron">
+                    <!-- Dynamic Leaderboard Content Loaded Here -->
+                    <div class="text-center text-slate-400 py-8">Loading scores...</div>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-800 text-center text-xs text-slate-400 font-orbitron">
+                Live rankings synchronized across all players
+            </div>
+        </div>
+
+        <!-- TOUCH STEERING CONTROLS (MOBILE) -->
+        <div id="touchControls" class="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10 opacity-70 hover:opacity-100 transition-opacity hidden">
+            <button id="leftBtn" class="w-16 h-16 rounded-full bg-slate-900/80 border-2 border-blue-500/50 text-cyan-400 text-2xl flex items-center justify-center active:bg-blue-600 active:text-white shadow-lg">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button id="rightBtn" class="w-16 h-16 rounded-full bg-slate-900/80 border-2 border-blue-500/50 text-cyan-400 text-2xl flex items-center justify-center active:bg-blue-600 active:text-white shadow-lg">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Modules -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global state for Firebase
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'syntax-rp-cyber-run';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+
+        // Initialize Firebase Backend
+        async function initFirebase() {
+            if (!firebaseConfig) {
+                console.warn("Firebase config not available, offline mode enabled.");
+                return;
+            }
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                currentUser = auth.currentUser;
+                listenToLeaderboard();
+            } catch (err) {
+                console.error("Firebase init error:", err);
+            }
+        }
+
+        // Leaderboard listener
+        let globalScores = [];
+        function listenToLeaderboard() {
+            if (!db) return;
+            const leaderboardRef = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+            onSnapshot(leaderboardRef, (snapshot) => {
+                globalScores = [];
+                snapshot.forEach((doc) => {
+                    globalScores.push(doc.data());
+                });
+                // Sort by highest score descending
+                globalScores.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+                renderLeaderboardUI();
+            }, (error) => {
+                console.error("Leaderboard fetch error:", error);
+            });
+        }
+
+        // Save Score to Cloud
+        window.saveHighScoreToCloud = async function(username, score, coins, total) {
+            if (!db || !currentUser) return;
+            try {
+                const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', currentUser.uid);
+                await setDoc(userDocRef, {
+                    uid: currentUser.uid,
+                    username: username || 'CyberRider',
+                    distanceScore: score,
+                    coinsCollected: coins,
+                    totalScore: total,
+                    updatedAt: Date.now()
+                }, { merge: true });
+            } catch (e) {
+                console.error("Error saving score:", e);
+            }
+        };
+
+        function renderLeaderboardUI() {
+            const container = document.getElementById('leaderboardList');
+            if (!container) return;
+            
+            if (globalScores.length === 0) {
+                container.innerHTML = `<div class="text-center text-slate-400 py-6">No records set yet. Be the first!</div>`;
+                return;
+            }
+
+            container.innerHTML = globalScores.slice(0, 15).map((entry, index) => {
+                let medalColor = "text-slate-400";
+                let badgeBg = "bg-slate-800/60";
+                if (index === 0) { medalColor = "text-yellow-400"; badgeBg = "bg-yellow-500/10 border-yellow-500/40"; }
+                else if (index === 1) { medalColor = "text-slate-300"; badgeBg = "bg-slate-300/10 border-slate-400/40"; }
+                else if (index === 2) { medalColor = "text-amber-600"; badgeBg = "bg-amber-600/10 border-amber-600/40"; }
+
+                const isMe = currentUser && entry.uid === currentUser.uid;
+
+                return `
+                    <div class="flex items-center justify-between p-2.5 rounded-lg border ${badgeBg} ${isMe ? 'ring-2 ring-cyan-400' : 'border-slate-800'} backdrop-blur-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 text-center font-bold ${medalColor}">#${index + 1}</span>
+                            <span class="font-bold ${isMe ? 'text-cyan-300' : 'text-slate-200'}">${escapeHtml(entry.username)}</span>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs">
+                            <span class="text-yellow-400 font-semibold"><i class="fa-solid fa-coins mr-1"></i>${entry.coinsCollected || 0}</span>
+                            <span class="text-cyan-400 font-bold text-sm">${entry.totalScore || 0} pts</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function escapeHtml(str) {
+            return (str || '').replace(/[&<>"']/g, "");
+        }
+
+        window.addEventListener('DOMContentLoaded', initFirebase);
+    </script>
+
+    <!-- GAME ENGINE & CANVAS LOGIC -->
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Layout & Responsive sizing
+        let width = 0;
+        let height = 0;
+        let roadLeft = 0;
+        let roadRight = 0;
+        let roadWidth = 0;
+        let laneWidth = 0;
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            width = canvas.width = container.clientWidth;
+            height = canvas.height = container.clientHeight;
+
+            // Define Asphalt Road Boundaries with Solid Border Walls
+            roadWidth = Math.min(width * 0.85, 380);
+            roadLeft = (width - roadWidth) / 2;
+            roadRight = roadLeft + roadWidth;
+            laneWidth = roadWidth / 3;
+
+            if (player) {
+                // Keep player strictly bound inside road
+                player.x = Math.max(roadLeft + player.width/2 + 10, Math.min(roadRight - player.width/2 - 10, player.x));
+                player.y = height - 120;
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Game State Variables
+        let gameState = 'MENU'; // 'MENU', 'PLAYING', 'GAMEOVER'
+        let distanceScore = 0;
+        let coinsCount = 0;
+        let baseSpeed = 4;
+        let currentSpeed = 4;
+        let roadOffset = 0;
+        let lastTime = performance.now();
+
+        // Steering / Controls State
+        const keys = { left: false, right: false, up: false, down: false };
+        let touchLeft = false;
+        let touchRight = false;
+
+        // Player Vehicle Object
+        const player = {
+            x: 0,
+            y: 0,
+            width: 44,
+            height: 80,
+            vx: 0,
+            maxVx: 7,
+            accel: 0.8,
+            friction: 0.82,
+            tilt: 0
+        };
+
+        // Entities Arrays
+        let obstacles = [];
+        let coins = [];
+        let particles = [];
+
+        // Pre-render Syntax RP Custom Logo Token Asset
+        let coinCanvas = document.createElement('canvas');
+        coinCanvas.width = 64;
+        coinCanvas.height = 64;
+        const cCtx = coinCanvas.getContext('2d');
+
+        function drawSyntaxCoinTexture() {
+            cCtx.clearRect(0, 0, 64, 64);
+            // Metallic Outer Ring
+            cCtx.save();
+            cCtx.beginPath();
+            cCtx.arc(32, 32, 28, 0, Math.PI * 2);
+            const grad = cCtx.createRadialGradient(32, 32, 10, 32, 32, 30);
+            grad.addColorStop(0, '#00d2ff');
+            grad.addColorStop(0.7, '#0052d4');
+            grad.addColorStop(1, '#002167');
+            cCtx.fillStyle = grad;
+            cCtx.fill();
+            cCtx.lineWidth = 3;
+            cCtx.strokeStyle = '#6fb1fc';
+            cCtx.stroke();
+
+            // Inner Shiny Hexagon with S Symbol
+            cCtx.beginPath();
+            const hexR = 18;
+            for(let i=0; i<6; i++) {
+                const angle = (Math.PI / 3) * i - Math.PI / 6;
+                const hx = 32 + hexR * Math.cos(angle);
+                const hy = 32 + hexR * Math.sin(angle);
+                if(i === 0) cCtx.moveTo(hx, hy);
+                else cCtx.lineTo(hx, hy);
+            }
+            cCtx.closePath();
+            cCtx.lineWidth = 2.5;
+            cCtx.strokeStyle = '#ffffff';
+            cCtx.stroke();
+
+            // S-Logo inside
+            cCtx.beginPath();
+            cCtx.moveTo(40, 23);
+            cCtx.lineTo(26, 30);
+            cCtx.lineTo(38, 36);
+            cCtx.lineTo(24, 43);
+            cCtx.lineWidth = 3.5;
+            cCtx.strokeStyle = '#ffffff';
+            cCtx.strokeCap = 'round';
+            cCtx.stroke();
+            cCtx.restore();
+        }
+        drawSyntaxCoinTexture();
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+        });
+
+        // Touch Steering Controls
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+
+        const setupTouchBtn = (btn, setFn) => {
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); setFn(true); });
+            btn.addEventListener('touchend', (e) => { e.preventDefault(); setFn(false); });
+            btn.addEventListener('mousedown', () => setFn(true));
+            btn.addEventListener('mouseup', () => setFn(false));
+        };
+        setupTouchBtn(leftBtn, (v) => touchLeft = v);
+        setupTouchBtn(rightBtn, (v) => touchRight = v);
+
+        // UI Element References
+        const mainMenu = document.getElementById('mainMenu');
+        const gameOverMenu = document.getElementById('gameOverMenu');
+        const leaderboardModal = document.getElementById('leaderboardModal');
+        const hud = document.getElementById('hud');
+        const touchControls = document.getElementById('touchControls');
+
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const menuLeaderboardBtn = document.getElementById('menuLeaderboardBtn');
+        const goLeaderboardBtn = document.getElementById('goLeaderboardBtn');
+        const backFromLeaderboardBtn = document.getElementById('backFromLeaderboardBtn');
+        const usernameInput = document.getElementById('usernameInput');
+
+        // Button Listeners
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+
+        menuLeaderboardBtn.addEventListener('click', () => {
+            leaderboardModal.classList.remove('hidden');
+        });
+        goLeaderboardBtn.addEventListener('click', () => {
+            leaderboardModal.classList.remove('hidden');
+        });
+        backFromLeaderboardBtn.addEventListener('click', () => {
+            leaderboardModal.classList.add('hidden');
+        });
+
+        function startGame() {
+            gameState = 'PLAYING';
+            distanceScore = 0;
+            coinsCount = 0;
+            baseSpeed = 5.5;
+            currentSpeed = baseSpeed;
+            obstacles = [];
+            coins = [];
+            particles = [];
+
+            player.x = width / 2;
+            player.vx = 0;
+
+            mainMenu.classList.add('hidden');
+            gameOverMenu.classList.add('hidden');
+            leaderboardModal.classList.add('hidden');
+            hud.classList.remove('hidden');
+            if ('ontouchstart' in window) {
+                touchControls.classList.remove('hidden');
+            }
+        }
+
+        function triggerGameOver() {
+            gameState = 'GAMEOVER';
+            const username = usernameInput.value.trim() || 'CyberRider';
+            const totalScore = Math.floor(distanceScore + (coinsCount * 50));
+
+            document.getElementById('finalScore').innerText = `${Math.floor(distanceScore)} m`;
+            document.getElementById('finalCoins').innerText = `${coinsCount}`;
+            document.getElementById('totalScore').innerText = `${totalScore}`;
+
+            hud.classList.add('hidden');
+            touchControls.classList.add('hidden');
+            gameOverMenu.classList.remove('hidden');
+
+            // Save score to Firestore
+            if (window.saveHighScoreToCloud) {
+                window.saveHighScoreToCloud(username, Math.floor(distanceScore), coinsCount, totalScore);
+            }
+
+            // Create explosion particles at player position
+            for(let i=0; i<35; i++) {
+                particles.push({
+                    x: player.x,
+                    y: player.y,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.5) * 12,
+                    radius: Math.random() * 6 + 3,
+                    color: i % 2 === 0 ? '#ff3300' : '#ffcc00',
+                    life: 1
+                });
+            }
+        }
+
+        // Spawn Obstacles (Traffic & Police Barricades)
+        let obstacleTimer = 0;
+        function spawnObstacles() {
+            obstacleTimer++;
+            if (obstacleTimer > Math.max(40, 90 - currentSpeed * 4)) {
+                obstacleTimer = 0;
+
+                const typeRand = Math.random();
+                const lane = Math.floor(Math.random() * 3); // 0, 1, or 2
+                const spawnX = roadLeft + (lane + 0.5) * laneWidth;
+
+                if (typeRand < 0.35) {
+                    // POLICE CAR OBSTACLE
+                    obstacles.push({
+                        type: 'POLICE',
+                        x: spawnX,
+                        y: -100,
+                        width: 44,
+                        height: 82,
+                        speed: currentSpeed * 0.4,
+                        sirenTimer: 0
+                    });
+                } else if (typeRand < 0.70) {
+                    // CIVILIAN / OTHER VEHICLE
+                    obstacles.push({
+                        type: 'CAR',
+                        x: spawnX,
+                        y: -100,
+                        width: 42,
+                        height: 78,
+                        color: ['#00e5ff', '#aa00ff', '#ff0055', '#33ff77'][Math.floor(Math.random()*4)],
+                        speed: currentSpeed * (Math.random() * 0.3 + 0.3)
+                    });
+                } else {
+                    // POLICE BARRICADE (Blocks 1 Side of the Road)
+                    const isDoubleBarricade = Math.random() < 0.3; 
+                    const barricadeWidth = isDoubleBarricade ? laneWidth * 1.8 : laneWidth * 0.9;
+                    
+                    // Constrain barricade center within road bounds
+                    let barricadeX = spawnX;
+                    if (barricadeX - barricadeWidth/2 < roadLeft + 15) barricadeX = roadLeft + 15 + barricadeWidth/2;
+                    if (barricadeX + barricadeWidth/2 > roadRight - 15) barricadeX = roadRight - 15 - barricadeWidth/2;
+
+                    obstacles.push({
+                        type: 'BARRICADE',
+                        x: barricadeX,
+                        y: -80,
+                        width: barricadeWidth,
+                        height: 35,
+                        speed: 0
+                    });
+                }
+            }
+        }
+
+        // Spawn Coins
+        let coinTimer = 0;
+        function spawnCoins() {
+            coinTimer++;
+            if (coinTimer > 60) {
+                coinTimer = 0;
+                const lane = Math.floor(Math.random() * 3);
+                const spawnX = roadLeft + (lane + 0.5) * laneWidth;
+                coins.push({
+                    x: spawnX,
+                    y: -40,
+                    radius: 16,
+                    rotation: 0
+                });
+            }
+        }
+
+        // Main Game Loop
+        function update(dt) {
+            if (gameState !== 'PLAYING') return;
+
+            // 1. Dynamic Speed Increase
+            currentSpeed += 0.0015;
+            distanceScore += currentSpeed * 0.15;
+
+            // Update HUD
+            document.getElementById('hudScore').innerText = `${Math.floor(distanceScore)} m`;
+            document.getElementById('hudCoins').innerText = `${coinsCount}`;
+            document.getElementById('hudSpeed').innerText = `${Math.floor(currentSpeed * 22)} KM/H`;
+
+            // 2. Smooth Car Steering Controls
+            if (keys.left || touchLeft) {
+                player.vx -= player.accel;
+            } else if (keys.right || touchRight) {
+                player.vx += player.accel;
+            } else {
+                player.vx *= player.friction;
+            }
+
+            // Cap Velocity
+            player.vx = Math.max(-player.maxVx, Math.min(player.maxVx, player.vx));
+            player.x += player.vx;
+
+            // Dynamic Body Rotation / Tilt
+            player.tilt = player.vx * 0.04;
+
+            // 3. Strict Closed Road Borders Collision
+            const borderMargin = 16;
+            const minX = roadLeft + player.width / 2 + borderMargin;
+            const maxX = roadRight - player.width / 2 - borderMargin;
+
+            if (player.x < minX) {
+                player.x = minX;
+                player.vx = 0;
+            } else if (player.x > maxX) {
+                player.x = maxX;
+                player.vx = 0;
+            }
+
+            // Road Track Animation
+            roadOffset = (roadOffset + currentSpeed * 3) % 40;
+
+            // 4. Update & Move Obstacles
+            spawnObstacles();
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.y += currentSpeed - obs.speed;
+
+                if (obs.type === 'POLICE') {
+                    obs.sirenTimer += 0.15;
+                }
+
+                // Accurate Hitbox Collision Detection
+                if (checkCollision(player, obs)) {
+                    triggerGameOver();
+                    return;
+                }
+
+                // Remove offscreen
+                if (obs.y > height + 100) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            // 5. Update & Collect Syntax Coins
+            spawnCoins();
+            for (let i = coins.length - 1; i >= 0; i--) {
+                const coin = coins[i];
+                coin.y += currentSpeed;
+                coin.rotation += 0.05;
+
+                // Pick up collision
+                const dx = player.x - coin.x;
+                const dy = player.y - coin.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist < player.width / 2 + coin.radius) {
+                    coinsCount++;
+                    // Spawn pickup visual sparkle
+                    for(let p=0; p<8; p++) {
+                        particles.push({
+                            x: coin.x,
+                            y: coin.y,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            radius: 3,
+                            color: '#00e5ff',
+                            life: 0.6
+                        });
+                    }
+                    coins.splice(i, 1);
+                    continue;
+                }
+
+                if (coin.y > height + 50) {
+                    coins.splice(i, 1);
+                }
+            }
+
+            // Update particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        // Hitbox Collision Helper
+        function checkCollision(p, obs) {
+            const pBox = {
+                left: p.x - p.width * 0.4,
+                right: p.x + p.width * 0.4,
+                top: p.y - p.height * 0.4,
+                bottom: p.y + p.height * 0.4
+            };
+            const oBox = {
+                left: obs.x - obs.width * 0.45,
+                right: obs.x + obs.width * 0.45,
+                top: obs.y - obs.height * 0.45,
+                bottom: obs.y + obs.height * 0.45
+            };
+
+            return !(pBox.right < oBox.left || 
+                     pBox.left > oBox.right || 
+                     pBox.bottom < oBox.top || 
+                     pBox.top > oBox.bottom);
+        }
+
+        // Render Graphics Loop
+        function render() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 1. Background Grid Ground
+            ctx.fillStyle = '#050716';
+            ctx.fillRect(0, 0, width, height);
+
+            // 2. Closed Asphalt Road
+            ctx.fillStyle = '#0d1326';
+            ctx.fillRect(roadLeft, 0, roadWidth, height);
+
+            // Road Side Solid Closed Borders (Barrier Walls)
+            const wallGlow = ctx.createLinearGradient(roadLeft - 12, 0, roadLeft, 0);
+            wallGlow.addColorStop(0, 'rgba(0, 191, 255, 0.1)');
+            wallGlow.addColorStop(1, '#00bfff');
+            ctx.fillStyle = wallGlow;
+            ctx.fillRect(roadLeft - 12, 0, 12, height);
+
+            const wallGlowR = ctx.createLinearGradient(roadRight, 0, roadRight + 12, 0);
+            wallGlowR.addColorStop(0, '#00bfff');
+            wallGlowR.addColorStop(1, 'rgba(0, 191, 255, 0.1)');
+            ctx.fillStyle = wallGlowR;
+            ctx.fillRect(roadRight, 0, 12, height);
+
+            // Border Stroking (Neon Barrier Lines)
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#00e5ff';
+            ctx.strokeStyle = '#00e5ff';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(roadLeft, 0); ctx.lineTo(roadLeft, height);
+            ctx.moveTo(roadRight, 0); ctx.lineTo(roadRight, height);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Lane Dividers
+            ctx.strokeStyle = 'rgba(67, 100, 247, 0.4)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([25, 20]);
+            ctx.lineDashOffset = -roadOffset;
+            ctx.beginPath();
+            ctx.moveTo(roadLeft + laneWidth, 0);
+            ctx.lineTo(roadLeft + laneWidth, height);
+            ctx.moveTo(roadLeft + laneWidth * 2, 0);
+            ctx.lineTo(roadLeft + laneWidth * 2, height);
+            ctx.stroke();
+            ctx.setLineDash([]); // Reset line dash
+
+            // 3. Render Syntax RP Coins
+            for (let coin of coins) {
+                ctx.save();
+                ctx.translate(coin.x, coin.y);
+                const scaleX = Math.abs(Math.cos(coin.rotation));
+                ctx.scale(scaleX, 1);
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00e5ff';
+                ctx.drawImage(coinCanvas, -18, -18, 36, 36);
+                ctx.restore();
+            }
+
+            // 4. Render Obstacles
+            for (let obs of obstacles) {
+                ctx.save();
+                ctx.translate(obs.x, obs.y);
+
+                if (obs.type === 'CAR') {
+                    // Civilian Vehicle
+                    drawCarBody(obs.width, obs.height, obs.color, false);
+                } else if (obs.type === 'POLICE') {
+                    // Police Car with Siren Lights
+                    drawCarBody(obs.width, obs.height, '#0f172a', true);
+                    
+                    // Siren Flash Effect
+                    const isRed = Math.floor(obs.sirenTimer * 2) % 2 === 0;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = isRed ? '#ff0033' : '#0066ff';
+                    ctx.fillStyle = isRed ? '#ff0033' : '#0066ff';
+                    ctx.fillRect(-8, -10, 16, 6);
+                    ctx.shadowBlur = 0;
+                } else if (obs.type === 'BARRICADE') {
+                    // Police Roadblock Barricade
+                    drawBarricade(obs.width, obs.height);
+                }
+
+                ctx.restore();
+            }
+
+            // 5. Render Player Vehicle
+            if (gameState === 'PLAYING' || gameState === 'GAMEOVER') {
+                ctx.save();
+                ctx.translate(player.x, player.y);
+                ctx.rotate(player.tilt);
+
+                // Rear Thruster Flame Glow
+                if (gameState === 'PLAYING') {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#00d2ff';
+                    ctx.fillStyle = '#00e5ff';
+                    ctx.beginPath();
+                    ctx.arc(-12, player.height/2 + 2, 5 + Math.random()*2, 0, Math.PI*2);
+                    ctx.arc(12, player.height/2 + 2, 5 + Math.random()*2, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+
+                // Cyber Player Car Body
+                drawPlayerCarBody(player.width, player.height);
+
+                ctx.restore();
+            }
+
+            // 6. Particle Effects
+            for (let p of particles) {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, p.life);
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Draw Player Cyber Supercar
+        function drawPlayerCarBody(w, h) {
+            // Main Chassis
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(-w/2, -h/2, w, h, 10);
+            ctx.fill();
+
+            // Metallic Hood & Accent Panels
+            const grad = ctx.createLinearGradient(0, -h/2, 0, h/2);
+            grad.addColorStop(0, '#2563eb');
+            grad.addColorStop(0.5, '#1d4ed8');
+            grad.addColorStop(1, '#1e40af');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.roundRect(-w/2 + 4, -h/2 + 6, w - 8, h - 12, 6);
+            ctx.fill();
+
+            // Neon Windshield
+            ctx.fillStyle = '#002b4d';
+            ctx.beginPath();
+            ctx.roundRect(-w/2 + 7, -h/4, w - 14, h/3, 4);
+            ctx.fill();
+
+            ctx.fillStyle = '#00e5ff';
+            ctx.fillRect(-w/2 + 9, -h/4 + 4, w - 18, 3);
+
+            // Headlights
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00e5ff';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-w/2 + 4, -h/2 + 2, 8, 4);
+            ctx.fillRect(w/2 - 12, -h/2 + 2, 8, 4);
+            ctx.shadowBlur = 0;
+        }
+
+        // Draw Civilian / Police Vehicles
+        function drawCarBody(w, h, color, isPolice) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.roundRect(-w/2, -h/2, w, h, 8);
+            ctx.fill();
+
+            // Windshield
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(-w/2 + 6, -h/4, w - 12, h/3.5);
+
+            if (isPolice) {
+                // Police Decal
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-w/2 + 2, -h/6, w - 4, 10);
+                ctx.fillStyle = '#000000';
+                ctx.font = '900 8px Orbitron';
+                ctx.textAlign = 'center';
+                ctx.fillText('POLICE', 0, -h/6 + 8);
+            }
+        }
+
+        // Draw Police Barricade / Roadblock
+        function drawBarricade(w, h) {
+            // Support Concrete Blocks
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(-w/2, -h/2, 16, h);
+            ctx.fillRect(w/2 - 16, -h/2, 16, h);
+
+            // Barrier Crossbeam with Warning Stripes
+            ctx.fillStyle = '#eab308';
+            ctx.fillRect(-w/2 + 8, -h/4, w - 16, h/2);
+
+            ctx.fillStyle = '#0f172a';
+            const stripeCount = Math.floor(w / 16);
+            for(let i=0; i<stripeCount; i++) {
+                if (i % 2 === 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(-w/2 + 10 + (i*14), -h/4);
+                    ctx.lineTo(-w/2 + 20 + (i*14), -h/4);
+                    ctx.lineTo(-w/2 + 10 + (i*14), h/4);
+                    ctx.lineTo(-w/2 + 0 + (i*14), h/4);
+                    ctx.fill();
+                }
+            }
+
+            // Warning Beacon Light
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#ff4400';
+            ctx.fillStyle = '#ff4400';
+            ctx.beginPath();
+            ctx.arc(0, -h/4, 5, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Game Engine Loop
+        function loop(timestamp) {
+            const dt = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+
+            update(dt);
+            render();
+
+            requestAnimationFrame(loop);
+        }
+
+        // Initial setup
+        resizeCanvas();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
